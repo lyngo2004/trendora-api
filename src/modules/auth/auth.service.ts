@@ -33,12 +33,9 @@ export class AuthService {
         });
 
         return {
-            message: 'Register success',
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-            },
+            id: user.id,
+            email: user.email,
+            name: user.name,
         };
     }
 }

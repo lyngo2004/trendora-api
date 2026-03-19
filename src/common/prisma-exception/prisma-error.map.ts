@@ -1,15 +1,14 @@
-export const PrismaErrorMap: Record<
-  string,
-  { message: string; errorCode: string; status: number }
-> = {
+import { HttpStatus } from '@nestjs/common';
+
+export const PrismaErrorMap = {
   P2002: {
+    status: HttpStatus.CONFLICT,
     message: 'Resource already exists',
-    errorCode: 'RESOURCE_ALREADY_EXISTS',
-    status: 400,
+    errorCode: 'UNIQUE_CONSTRAINT',
   },
   P2025: {
-    message: 'Resource not found',
-    errorCode: 'RESOURCE_NOT_FOUND',
-    status: 404,
+    status: HttpStatus.NOT_FOUND,
+    message: 'Record not found',
+    errorCode: 'NOT_FOUND',
   },
 };

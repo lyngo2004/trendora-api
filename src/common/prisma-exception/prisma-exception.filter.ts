@@ -22,7 +22,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     let message = 'Internal server error';
     let errorCode = 'INTERNAL_ERROR';
 
-    // Prisma
+    // Prisma error
     if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       const mapped = PrismaErrorMap[exception.code];
 
@@ -30,20 +30,23 @@ export class PrismaExceptionFilter implements ExceptionFilter {
         status = mapped.status;
         message = mapped.message;
         errorCode = mapped.errorCode;
+      } else {
+        message = exception.message;
+        errorCode = exception.code;
       }
     }
 
-    // HttpException (Nest)
+    // HttpException
     else if (exception instanceof HttpException) {
       status = exception.getStatus();
 
       const res: any = exception.getResponse();
 
-      message = res.message || res || 'Error';
+      message = res.message || 'Error';
       errorCode = res.error || 'HTTP_EXCEPTION';
     }
 
-    // Unknown error → log full
+    // Unknown error → log
     else {
       this.logger.error(
         `[${request.method}] ${request.url}`,
@@ -52,11 +55,11 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     }
 
     response.status(status).json({
-      success: false,
+      statusCode: status,
       message,
       errorCode,
-      timestamp: new Date().toISOString(),
       path: request.url,
+      timestamp: new Date().toISOString(),
     });
   }
 }
