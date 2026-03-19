@@ -6,9 +6,13 @@ import { ProductsModule } from './modules/catalog/products/products.module';
 // import { CategoriesModule } from './categories/categories.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     PrismaModule,
     ProductsModule,
     AuthModule,

@@ -7,11 +7,10 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaErrorMap } from './prisma-error.map';
 
 @Catch()
-export class PrismaExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(PrismaExceptionFilter.name);
+export class GlobalExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(GlobalExceptionFilter.name);
 
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -23,43 +22,37 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     let errorCode = 'INTERNAL_ERROR';
 
     // Prisma error
-    if (exception instanceof Prisma.PrismaClientKnownRequestError) {
-      const mapped = PrismaErrorMap[exception.code];
-
-      if (mapped) {
-        status = mapped.status;
-        message = mapped.message;
-        errorCode = mapped.errorCode;
-      } else {
-        message = exception.message;
-        errorCode = exception.code;
+    if (
+      exception instanceof Prisma.PrismaClientKnownRequestError
+    ) {
+      if (exception.code === 'P2002') {
+        status = HttpStatus.BAD_REQUEST;
+        message = 'Email already exists';
+        errorCode = 'USER_ALREADY_EXISTS';
       }
     }
 
-    // HttpException
+    // Nest HttpException
     else if (exception instanceof HttpException) {
       status = exception.getStatus();
 
       const res: any = exception.getResponse();
 
-      message = res.message || 'Error';
+      message = res.message || res || 'Error';
       errorCode = res.error || 'HTTP_EXCEPTION';
     }
 
-    // Unknown error → log
+    // Unknown error
     else {
-      this.logger.error(
-        `[${request.method}] ${request.url}`,
-        exception.stack,
-      );
+      this.logger.error(exception);
     }
 
     response.status(status).json({
-      statusCode: status,
+      success: false,
       message,
       errorCode,
-      path: request.url,
       timestamp: new Date().toISOString(),
+      path: request.url,
     });
   }
 }
